@@ -2,28 +2,28 @@
 import { useState } from "react";
 import { Eye, EyeOff, FileSignature, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { userLogin } from "@/redux/features/auth/auth.Action";
 
 export function Login() {
   const router = useRouter()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const dispatch = useAppDispatch()
+  const { loading, error, user } = useAppSelector((state)=>state.auth)
+  console.log(user)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    if (!email || !password) {
-      setError("Please fill in all fields.");
-      return;
+    try {
+      await dispatch(userLogin({email,password}))
+      setEmail("");
+      setPassword("");
+      router.push("/")
+    } catch (error) {
+      console.error(error)
     }
-    setIsLoading(true);
-    // Simulated auth
-    setTimeout(() => {
-      setIsLoading(false);
-      setError("Invalid credentials. Try demo@signpdf.com / password123");
-    }, 1200);
   };
 
   return (
@@ -190,7 +190,7 @@ export function Login() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full py-3 rounded-lg flex items-center justify-center gap-2 transition-opacity"
               style={{
                 background: "#1a2540",
@@ -198,11 +198,11 @@ export function Login() {
                 fontWeight: 500,
                 fontSize: "0.9rem",
                 border: "none",
-                cursor: isLoading ? "not-allowed" : "pointer",
-                opacity: isLoading ? 0.7 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.7 : 1,
               }}
             >
-              {isLoading ? (
+              {loading ? (
                 <span>Signing in…</span>
               ) : (
                 <>

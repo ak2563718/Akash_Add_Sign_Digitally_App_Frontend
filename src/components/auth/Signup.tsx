@@ -2,19 +2,23 @@
 import { useState } from "react";
 import { Eye, EyeOff, FileSignature, ArrowRight, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { userSignup } from "@/redux/features/auth/auth.Action";
 export function Signup() {
-    const router = useRouter()
+  const router = useRouter()
   const [form, setForm] = useState({
-    fullName: "",
+    name: "",
+    username:"",
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [agreed, setAgreed] = useState(false);
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state)=>state.auth)
 
   const passwordStrength = (pw: string): { score: number; label: string; color: string } => {
     if (!pw) return { score: 0, label: "", color: "transparent" };
@@ -35,28 +39,22 @@ export function Signup() {
 
   const strength = passwordStrength(form.password);
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required.";
-    if (!form.email) e.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email.";
-    if (!form.password) e.password = "Password is required.";
-    else if (form.password.length < 8) e.password = "Minimum 8 characters.";
-    if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords do not match.";
-    if (!agreed) e.agreed = "You must accept the terms.";
-    return e;
-  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setErrors({});
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      // In a real app, redirect to dashboard
-    }, 1400);
+    try {
+      await dispatch(userSignup(form))
+      setForm({
+        name:'',
+        username:'',
+        email:'',
+        password:'',
+        confirmPassword:'',
+      })
+      router.push('/login')
+    } catch (error) {
+      console.error(error)
+    }
   };
 
   const field = (key: keyof typeof form, value: string) =>
@@ -159,15 +157,31 @@ export function Signup() {
               <label style={{ color: "#1a2540", fontSize: "0.82rem", fontWeight: 500 }}>Full name</label>
               <input
                 type="text"
-                value={form.fullName}
-                onChange={(e) => field("fullName", e.target.value)}
+                value={form.name}
+                onChange={(e) => field("name", e.target.value)}
                 placeholder="Sarah Johnson"
                 className="w-full px-4 py-3 rounded-lg outline-none transition-all"
-                style={inputStyle(!!errors.fullName)}
-                onFocus={(e) => !errors.fullName && (e.target.style.borderColor = "#2f54eb")}
-                onBlur={(e) => !errors.fullName && (e.target.style.borderColor = "rgba(26,37,64,0.15)")}
+                style={inputStyle(!!errors.name)}
+                onFocus={(e) => !errors.name && (e.target.style.borderColor = "#2f54eb")}
+                onBlur={(e) => !errors.name && (e.target.style.borderColor = "rgba(26,37,64,0.15)")}
               />
-              {errors.fullName && <p style={{ color: "#d4183d", fontSize: "0.75rem" }}>{errors.fullName}</p>}
+              {errors.name && <p style={{ color: "#d4183d", fontSize: "0.75rem" }}>{errors.name}</p>}
+            </div>
+
+            {/* Full name */}
+            <div className="flex flex-col gap-1.5">
+              <label style={{ color: "#1a2540", fontSize: "0.82rem", fontWeight: 500 }}>Username</label>
+              <input
+                type="text"
+                value={form.username}
+                onChange={(e) => field("username", e.target.value)}
+                placeholder="name123"
+                className="w-full px-4 py-3 rounded-lg outline-none transition-all"
+                style={inputStyle(!!errors.username)}
+                onFocus={(e) => !errors.username && (e.target.style.borderColor = "#2f54eb")}
+                onBlur={(e) => !errors.username && (e.target.style.borderColor = "rgba(26,37,64,0.15)")}
+              />
+              {errors.username && <p style={{ color: "#d4183d", fontSize: "0.75rem" }}>{errors.username}</p>}
             </div>
 
             {/* Email */}
@@ -282,7 +296,7 @@ export function Signup() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full py-3 rounded-lg flex items-center justify-center gap-2 transition-opacity mt-1"
               style={{
                 background: "#2f54eb",
@@ -290,11 +304,11 @@ export function Signup() {
                 fontWeight: 500,
                 fontSize: "0.9rem",
                 border: "none",
-                cursor: isLoading ? "not-allowed" : "pointer",
-                opacity: isLoading ? 0.7 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.7 : 1,
               }}
             >
-              {isLoading ? (
+              {loading ? (
                 <span>Creating account…</span>
               ) : (
                 <>
