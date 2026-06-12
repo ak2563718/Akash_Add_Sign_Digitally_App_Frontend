@@ -4,6 +4,7 @@ import { Eye, EyeOff, FileSignature, ArrowRight, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { userSignup } from "@/redux/features/auth/auth.Action";
+import toast from "react-hot-toast";
 export function Signup() {
   const router = useRouter()
   const [form, setForm] = useState({
@@ -18,7 +19,7 @@ export function Signup() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [agreed, setAgreed] = useState(false);
   const dispatch = useAppDispatch();
-  const { loading } = useAppSelector((state)=>state.auth)
+  const { loading, error } = useAppSelector((state)=>state.auth)
 
   const passwordStrength = (pw: string): { score: number; label: string; color: string } => {
     if (!pw) return { score: 0, label: "", color: "transparent" };
@@ -43,7 +44,8 @@ export function Signup() {
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await dispatch(userSignup(form))
+      const res =await dispatch(userSignup(form)).unwrap();
+      toast.success(res.message);
       setForm({
         name:'',
         username:'',
@@ -292,6 +294,12 @@ export function Signup() {
               </p>
             </div>
             {errors.agreed && <p style={{ color: "#d4183d", fontSize: "0.75rem", marginTop: "-8px" }}>{errors.agreed}</p>}
+
+            {error && (
+              <p style={{ color: "#d4183d", fontSize: "0.82rem", background: "rgba(212,24,61,0.06)", padding: "0.6rem 0.9rem", borderRadius: "0.4rem", textAlign:"center" }}>
+                {error}
+              </p>
+            )}
 
             {/* Submit */}
             <button

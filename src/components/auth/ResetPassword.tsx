@@ -1,15 +1,22 @@
 'use client'
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import { FileSignature, Eye, EyeOff, ArrowLeft, KeyRound, Check, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { userResetPassword } from "@/redux/features/auth/auth.Action";
+import toast from "react-hot-toast";
 
 export function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { loading , error, message, isVerifiedOtp } = useAppSelector((state)=>state.auth)
+  console.log("error from resetpassword",error)
 
   const rules = [
     { label: "At least 8 characters", met: password.length >= 8 },
@@ -32,21 +39,23 @@ export function ResetPassword() {
 
   const strength = passwordStrength();
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!password) e.password = "Password is required.";
-    else if (password.length < 8) e.password = "Minimum 8 characters.";
-    if (password !== confirmPassword) e.confirmPassword = "Passwords do not match.";
-    return e;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setErrors({});
-    setIsLoading(true);
-    setTimeout(() => { setIsLoading(false); setSuccess(true); }, 1400);
+    if(password !== confirmPassword){
+      toast.error("Both Password are not same")
+    }
+    try {
+       const res =await dispatch(userResetPassword(password)).unwrap();
+       toast.success(res.message);
+       setPassword('');
+       setConfirmPassword('');
+       router.push('/login')
+    } catch (error) {
+      console.error(error);
+      setPassword('');
+      setConfirmPassword('')
+    }
+    
   };
 
   if (success) {
@@ -72,6 +81,10 @@ export function ResetPassword() {
         </div>
       </div>
     );
+  }
+
+  if(!isVerifiedOtp){
+   return router.push('/forgot-password')
   }
 
   return (
@@ -135,6 +148,7 @@ export function ResetPassword() {
         <div className="w-full max-w-sm">
           <button
             type="button"
+            onClick={()=>router.push('/verify-otp')}
             className="flex items-center gap-1.5 mb-8 transition-opacity hover:opacity-70"
             style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7694", fontSize: "0.85rem", padding: 0 }}
           >
@@ -248,14 +262,18 @@ export function ResetPassword() {
               )}
               {errors.confirmPassword && <p style={{ color: "#d4183d", fontSize: "0.75rem" }}>{errors.confirmPassword}</p>}
             </div>
-
+              {error && (
+              <p style={{ color: "#d4183d", fontSize: "0.82rem", background: "rgba(212,24,61,0.06)", padding: "0.6rem 0.9rem", borderRadius: "0.4rem", textAlign:"center" }}>
+                {error}
+              </p>
+            )}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full py-3 rounded-lg flex items-center justify-center gap-2 transition-opacity mt-1"
-              style={{ background: "#1a2540", color: "#ffffff", fontWeight: 500, fontSize: "0.9rem", border: "none", cursor: isLoading ? "not-allowed" : "pointer", opacity: isLoading ? 0.7 : 1 }}
+              style={{ background: "#1a2540", color: "#ffffff", fontWeight: 500, fontSize: "0.9rem", border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
             >
-              {isLoading ? <span>Updating password…</span> : <><span>Reset password</span><KeyRound size={15} /></>}
+              {loading ? <span>Updating password…</span> : <><span>Reset password</span><KeyRound size={15} /></>}
             </button>
           </form>
         </div>

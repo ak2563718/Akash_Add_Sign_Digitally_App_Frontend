@@ -1,21 +1,28 @@
 'use client'
 import { useState } from "react";
 import { FileSignature, ArrowRight, ArrowLeft, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { userForgotPassword } from "@/redux/features/auth/auth.Action";
+import toast from "react-hot-toast";
 
 export function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const router = useRouter();
+  const { loading, error } = useAppSelector((state)=>state.auth);
+  const dispatch = useAppDispatch();
+  console.log("error from forgot password",error)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    if (!email) { setError("Please enter your email address."); return; }
-    if (!/\S+@\S+\.\S+/.test(email)) { setError("Enter a valid email address."); return; }
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
+    try {
+      const res =await dispatch(userForgotPassword(email)).unwrap();
+      toast.success(res.message)
+      setEmail('')
+      router.push('/verify-otp')
+    } catch (error) {
+      console.error(error)
+    }
   };
 
   return (
@@ -39,31 +46,6 @@ export function ForgotPassword() {
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "340px" }}>
             Enter the email address linked to your account and we'll send you a one-time code to reset your password securely.
           </p>
-
-          {/* Illustration */}
-          <div className="mt-12 rounded-xl p-6" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(47,84,235,0.2)" }}>
-                <Mail size={17} style={{ color: "#2f54eb" }} />
-              </div>
-              <div>
-                <p style={{ color: "#fff", fontWeight: 500, fontSize: "0.85rem" }}>Check your inbox</p>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.75rem" }}>OTP valid for 10 minutes</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              {[90, 70, 80].map((w, i) => (
-                <div key={i} className="h-2 rounded-full" style={{ width: `${w}%`, background: "rgba(255,255,255,0.08)" }} />
-              ))}
-            </div>
-            <div className="mt-4 flex gap-2">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="flex-1 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)", fontSize: "1.1rem", fontWeight: 600 }}>
-                  ·
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.75rem" }}>
@@ -85,7 +67,7 @@ export function ForgotPassword() {
           {/* Back */}
           <button
             type="button"
-            
+            onClick={()=>router.push('/login')}
             className="flex items-center gap-1.5 mb-8 transition-opacity hover:opacity-70"
             style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7694", fontSize: "0.85rem", padding: 0 }}
           >
@@ -118,16 +100,16 @@ export function ForgotPassword() {
                 onFocus={(e) => !error && (e.target.style.borderColor = "#2f54eb")}
                 onBlur={(e) => !error && (e.target.style.borderColor = "rgba(26,37,64,0.15)")}
               />
-              {error && <p style={{ color: "#d4183d", fontSize: "0.75rem" }}>{error}</p>}
+              {error && <p style={{ color: "#d4183d", fontSize: "0.75rem", textAlign:"center" }}>{error}</p>}
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full py-3 rounded-lg flex items-center justify-center gap-2 transition-opacity"
-              style={{ background: "#2f54eb", color: "#ffffff", fontWeight: 500, fontSize: "0.9rem", border: "none", cursor: isLoading ? "not-allowed" : "pointer", opacity: isLoading ? 0.7 : 1 }}
+              style={{ background: "#2f54eb", color: "#ffffff", fontWeight: 500, fontSize: "0.9rem", border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
             >
-              {isLoading ? <span>Sending OTP…</span> : <><span>Send reset code</span><ArrowRight size={15} /></>}
+              {loading ? <span>Sending OTP…</span> : <><span>Send reset code</span><ArrowRight size={15} /></>}
             </button>
           </form>
 
@@ -135,6 +117,7 @@ export function ForgotPassword() {
             Remember your password?{" "}
             <button
               type="button"
+              onClick={()=>router.push('/login')}
               style={{ color: "#2f54eb", fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0 }}
             >
               Sign in

@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const baseuri = 'http://localhost:3300/api/auth'
+const baseuri = 'https://akash-add-sign-digitally-app-backend.onrender.com/api/auth'
 
 interface loginData{
     email:string,
@@ -13,15 +13,7 @@ interface signuData{
     username:string,
     password:string,
 }
-interface forgotData{
-    email:string,
-}
-interface otpData{
-    otp:string
-}
-interface passData{
-    password:string
-}
+
 
 export const userLogin = createAsyncThunk<any,loginData,{rejectValue:string}>(
     'user/login',
@@ -59,7 +51,7 @@ export const userSignup = createAsyncThunk<any,signuData,{rejectValue:string}>(
     }
 )
 
-export const userLogout = createAsyncThunk(
+export const userLogout = createAsyncThunk<any, void, {rejectValue:string}>(
     'user/logout',
     async( _ , { rejectWithValue }) => {
         try {
@@ -77,7 +69,7 @@ export const userLogout = createAsyncThunk(
     }
 )
 
-export const userSession = createAsyncThunk<any,null,{rejectValue:string}>(
+export const userSession = createAsyncThunk<any, void,{rejectValue:string}>(
     'user/session',
     async( _ , {rejectWithValue}) => {
         try {
@@ -95,11 +87,11 @@ export const userSession = createAsyncThunk<any,null,{rejectValue:string}>(
     }
 )
 
-export const userForgotPassword = createAsyncThunk<any,forgotData,{rejectValue:string}>(
+export const userForgotPassword = createAsyncThunk<any,string,{rejectValue:string}>(
     'user/forgot',
     async( email, {rejectWithValue})=>{
         try {
-            const { data } = await axios.post(`${baseuri}/fogot-password`,email,{
+            const { data } = await axios.post(`${baseuri}/forgot-password`,{email},{
                 headers:{'Content-Type':'application/json'},
                 withCredentials:true,
             })
@@ -112,11 +104,12 @@ export const userForgotPassword = createAsyncThunk<any,forgotData,{rejectValue:s
         }
     }
 )
-export const userVerifyOtp = createAsyncThunk<any,otpData,{rejectValue:string}>(
+
+export const userVerifyOtp = createAsyncThunk<any,string,{rejectValue:string}>(
     'user/verifyotp',
     async( otp , {rejectWithValue})=>{
         try {
-            const { data } = await axios.post(`${baseuri}/verifyotp`,otp,{
+            const { data } = await axios.post(`${baseuri}/verify-otp`,{otp},{
                 headers:{'Content-Type':'application/json'},
                 withCredentials:true,
             })
@@ -129,11 +122,11 @@ export const userVerifyOtp = createAsyncThunk<any,otpData,{rejectValue:string}>(
         }
     }
 )
-export const userResetPassword = createAsyncThunk<any,passData,{rejectValue:string}>(
+export const userResetPassword = createAsyncThunk<any,string,{rejectValue:string}>(
     'user/Reset',
     async( password, {rejectWithValue})=>{
         try {
-            const { data } = await axios.post(`${baseuri}/reset-password`,password,{
+            const { data } = await axios.patch(`${baseuri}/reset-password`,{password},{
                 headers:{'Content-Type':'application/json'},
                 withCredentials:true,
             })

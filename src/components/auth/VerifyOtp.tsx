@@ -1,14 +1,19 @@
 'use client'
 import { useState, useRef, useEffect, KeyboardEvent, ClipboardEvent } from "react";
 import { FileSignature, ArrowLeft, ShieldCheck, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { userVerifyOtp } from "@/redux/features/auth/auth.Action";
+import toast from "react-hot-toast";
 
 export function VerifyOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(59);
   const [resending, setResending] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const router = useRouter();
+  const dispatch = useAppDispatch()
+  const { loading, error, message, isSentOtp } = useAppSelector((state)=>state.auth);
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -25,7 +30,6 @@ export function VerifyOtp() {
     const next = [...otp];
     next[index] = value;
     setOtp(next);
-    setError("");
     if (value && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
@@ -48,30 +52,32 @@ export function VerifyOtp() {
     inputRefs.current[focusIdx]?.focus();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    const code = otp.join("");
-    if (code.length < 6) { setError("Enter the full 6-digit code."); return; }
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (code === "123456") {
-      } else {
-        setError("Incorrect code. Try 123456 for demo.");
-        setOtp(["", "", "", "", "", ""]);
-        inputRefs.current[0]?.focus();
-      }
-    }, 1000);
+    try {
+      const code = otp.join("");
+      const res = await dispatch(userVerifyOtp(code)).unwrap();
+      toast.success(res.message)
+      setOtp(["", "", "", "", "", ""]);
+      router.push('/reset-password');
+    } catch (error) {
+      console.error(error)
+      setOtp(["", "", "", "", "", ""]);
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async() => {
     if (resendCooldown > 0) return;
     setResending(true);
-    setError("");
+    await dispatch(userVerifyOtp(otp.join(""))).unwrap();
     setOtp(["", "", "", "", "", ""]);
     inputRefs.current[0]?.focus();
     setTimeout(() => { setResending(false); setResendCooldown(59); }, 1000);
   };
+
+  if(!isSentOtp){
+   return router.push('/forgot-password')
+  }
 
 //   const maskedEmail = email?.replace(/(.{2})(.*)(@.*)/, (_, a, b, c) => a + "*".repeat(b.length) + c);
 
@@ -94,7 +100,7 @@ export function VerifyOtp() {
             One code<br />to confirm it's you.
           </h2>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "340px" }}>
-            We sent a 6-digit verification code to your email. Enter it within 10 minutes to proceed.
+            We sent a 6-digit verification code to your email. Enter it within 5 minutes to proceed.
           </p>
 
           {/* OTP visual */}
@@ -142,7 +148,7 @@ export function VerifyOtp() {
         <div className="w-full max-w-sm">
           <button
             type="button"
-            
+            onClick={()=>router.push('/forgot-password')}
             className="flex items-center gap-1.5 mb-8 transition-opacity hover:opacity-70"
             style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7694", fontSize: "0.85rem", padding: 0 }}
           >
@@ -193,18 +199,18 @@ export function VerifyOtp() {
             </div>
 
             {error && (
-              <p style={{ color: "#d4183d", fontSize: "0.82rem", background: "rgba(212,24,61,0.06)", padding: "0.6rem 0.9rem", borderRadius: "0.4rem", marginTop: "-8px" }}>
+              <p style={{ color: "#d4183d", fontSize: "0.82rem", background: "rgba(212,24,61,0.06)", padding: "0.6rem 0.9rem", borderRadius: "0.4rem", marginTop: "-8px",textAlign:'center' }}>
                 {error}
               </p>
             )}
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full py-3 rounded-lg flex items-center justify-center gap-2 transition-opacity"
-              style={{ background: "#2f54eb", color: "#ffffff", fontWeight: 500, fontSize: "0.9rem", border: "none", cursor: isLoading ? "not-allowed" : "pointer", opacity: isLoading ? 0.7 : 1 }}
+              style={{ background: "#2f54eb", color: "#ffffff", fontWeight: 500, fontSize: "0.9rem", border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
             >
-              {isLoading ? <span>Verifying…</span> : <><span>Verify code</span><ShieldCheck size={15} /></>}
+              {loading ? <span>Verifying…</span> : <><span>Verify code</span><ShieldCheck size={15} /></>}
             </button>
           </form>
 

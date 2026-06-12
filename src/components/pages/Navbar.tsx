@@ -1,6 +1,7 @@
 'use client'
 import { useState } from "react";
 import { FileSignature, Menu, X, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 
 
@@ -22,6 +23,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [currentPage] = useState('login')
+  const router = useRouter()
 
   const isAuth = ["login", "signup", "forgot-password", "verify-otp", "reset-password"].includes(currentPage);
 
@@ -40,6 +42,7 @@ export function Navbar() {
         {/* Logo */}
         <button
           type="button"
+          onClick={()=>router.push('/')}
           className="flex items-center gap-2.5 flex-shrink-0"
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
@@ -121,6 +124,7 @@ export function Navbar() {
                 style={{ background: "none", border: "none", cursor: "pointer", color: "#1a2540", fontSize: "0.875rem", fontWeight: 500 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f2f8")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                onClick={()=>router.push('/login')}
               >
                 Sign in
               </button>
@@ -130,6 +134,7 @@ export function Navbar() {
                 style={{ background: "#2f54eb", color: "#ffffff", border: "none", cursor: "pointer", fontSize: "0.875rem", fontWeight: 500 }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                onClick={()=>router.push('/signup')}
               >
                 Get started free
               </button>
@@ -142,6 +147,7 @@ export function Navbar() {
                 style={{ background: "none", border: "none", cursor: "pointer", color: "#1a2540", fontSize: "0.875rem", fontWeight: 500 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f2f8")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                
               >
                 Sign in
               </button>

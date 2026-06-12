@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { userLogin, userLogout, userSession, userSignup } from "./auth.Action";
+import { userForgotPassword, userLogin, userLogout, userResetPassword, userSession, userSignup, userVerifyOtp } from "./auth.Action";
 import { stat } from "fs";
 
 
@@ -10,6 +10,8 @@ interface Authdata{
     message:String | null,
     error:string | null,
     islogin:boolean,
+    isSentOtp:boolean,
+    isVerifiedOtp:boolean,
 }
 const initialState:Authdata ={
     users:[],
@@ -18,6 +20,8 @@ const initialState:Authdata ={
     message:null,
     error:null,
     islogin:false,
+    isSentOtp:false,
+    isVerifiedOtp:false,
 }
 
 const authSlice = createSlice({
@@ -80,6 +84,47 @@ const authSlice = createSlice({
             state.message = action.payload.message;
             state.user = action.payload.user;
         }).addCase(userSession.rejected,(state,action)=>{
+            state.loading = false;
+            state.error = action.payload ?? null;
+        });
+
+        // 5. User forot password
+        builder.addCase(userForgotPassword.pending,(state)=>{
+            state.loading = true;
+            state.message = null;
+            state.error = null;
+        }).addCase(userForgotPassword.fulfilled,(state,action)=>{
+            state.loading = false;
+            state.message = action.payload.message;
+            state.isSentOtp = true;
+        }).addCase(userForgotPassword.rejected,(state,action)=>{
+            state.loading = false;
+            state.error = action.payload ?? null;
+        });
+
+        // 6. user verifyotp
+        builder.addCase(userVerifyOtp.pending,(state)=>{
+            state.loading = true;
+            state.error = null;
+            state.message = null;
+        }).addCase(userVerifyOtp.fulfilled,(state,action)=>{
+            state.loading = false;
+            state.message = action.payload.message;
+            state.isVerifiedOtp = true;
+        }).addCase(userVerifyOtp.rejected,(state,action)=>{
+            state.loading = false;
+            state.error = action.payload ?? null;
+        });
+
+        // 7. user resetPassword
+        builder.addCase(userResetPassword.pending,(state)=>{
+            state.loading = true;
+            state.message = null;
+            state.error = null;
+        }).addCase(userResetPassword.fulfilled,(state,action)=>{
+            state.loading = false;
+            state.message = action.payload.message;
+        }).addCase(userResetPassword.rejected,(state,action)=>{
             state.loading = false;
             state.error = action.payload ?? null;
         })

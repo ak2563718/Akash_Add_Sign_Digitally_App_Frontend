@@ -4,6 +4,7 @@ import { Eye, EyeOff, FileSignature, ArrowRight, CheckCircle2 } from "lucide-rea
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { userLogin } from "@/redux/features/auth/auth.Action";
+import toast from "react-hot-toast";
 
 export function Login() {
   const router = useRouter()
@@ -11,13 +12,13 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useAppDispatch()
-  const { loading, error, user } = useAppSelector((state)=>state.auth)
-  console.log(user)
+  const { loading, error, message } = useAppSelector((state)=>state.auth)
 
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await dispatch(userLogin({email,password}))
+      const res= await dispatch(userLogin({email,password})).unwrap();
+      toast.success(res.message)
       setEmail("");
       setPassword("");
       router.push("/")
@@ -91,7 +92,7 @@ export function Login() {
             style={{ background: "#2f54eb", color: "#fff", fontSize: "0.8rem", fontWeight: 500 }}
           >
             <FileSignature size={13} />
-            Sarah Johnson — signed Jun 8, 2026
+            Akash kumar — signed Jun 8, 2026
           </div>
         </div>
       </div>
@@ -146,12 +147,14 @@ export function Login() {
                 <label style={{ color: "#1a2540", fontSize: "0.82rem", fontWeight: 500, letterSpacing: "0.01em" }}>
                   Password
                 </label>
-                <button
+                <a href="/forgot-password">
+                  <button
                   type="button"
                   style={{ color: "#2f54eb", fontSize: "0.82rem", background: "none", border: "none", cursor: "pointer", padding: 0 }}
                 >
                   Forgot password?
                 </button>
+                </a>
               </div>
               <div className="relative">
                 <input
@@ -182,7 +185,7 @@ export function Login() {
 
             {/* Error */}
             {error && (
-              <p style={{ color: "#d4183d", fontSize: "0.82rem", background: "rgba(212,24,61,0.06)", padding: "0.6rem 0.9rem", borderRadius: "0.4rem" }}>
+              <p style={{ color: "#d4183d", fontSize: "0.82rem", background: "rgba(212,24,61,0.06)", padding: "0.6rem 0.9rem", borderRadius: "0.4rem", textAlign:"center" }}>
                 {error}
               </p>
             )}
