@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const baseuri = process.env.NEXT_PUBLIC_BACKEND_BASE_URI;
+const baseuri = 'https://akash-add-sign-digitally-app-backend.onrender.com/api/auth';
 console.log(baseuri)
 interface loginData{
     email:string,
