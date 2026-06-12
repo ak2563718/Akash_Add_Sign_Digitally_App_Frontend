@@ -76,7 +76,8 @@ export function VerifyOtp() {
   };
 
   if(!isSentOtp){
-   return router.push('/forgot-password')
+    router.push('/forgot-password')
+    return null;
   }
 
 //   const maskedEmail = email?.replace(/(.{2})(.*)(@.*)/, (_, a, b, c) => a + "*".repeat(b.length) + c);

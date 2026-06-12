@@ -84,7 +84,8 @@ export function ResetPassword() {
   }
 
   if(!isVerifiedOtp){
-   return router.push('/forgot-password')
+   router.push('/forgot-password')
+   return null;
   }
 
   return (
