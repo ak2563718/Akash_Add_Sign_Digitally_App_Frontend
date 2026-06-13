@@ -2,7 +2,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const baseuri = 'https://akash-add-sign-digitally-app-backend.onrender.com/api/auth';
-console.log(baseuri)
 interface loginData{
     email:string,
     password:string
@@ -14,7 +13,7 @@ interface signuData{
     password:string,
 }
 
-
+// 1. User Login Api call
 export const userLogin = createAsyncThunk<any,loginData,{rejectValue:string}>(
     'user/login',
     async( info, { rejectWithValue })=>{
@@ -33,6 +32,7 @@ export const userLogin = createAsyncThunk<any,loginData,{rejectValue:string}>(
     }
 )
 
+// 2. User Signup/register Api call
 export const userSignup = createAsyncThunk<any,signuData,{rejectValue:string}>(
     'user/signup',
     async( info, { rejectWithValue })=>{
@@ -51,6 +51,7 @@ export const userSignup = createAsyncThunk<any,signuData,{rejectValue:string}>(
     }
 )
 
+// 3 . User Logout api call 
 export const userLogout = createAsyncThunk<any, void, {rejectValue:string}>(
     'user/logout',
     async( _ , { rejectWithValue }) => {
@@ -69,6 +70,7 @@ export const userLogout = createAsyncThunk<any, void, {rejectValue:string}>(
     }
 )
 
+// 4. Check user Session Api call
 export const userSession = createAsyncThunk<any, void,{rejectValue:string}>(
     'user/session',
     async( _ , {rejectWithValue}) => {
@@ -87,6 +89,7 @@ export const userSession = createAsyncThunk<any, void,{rejectValue:string}>(
     }
 )
 
+// 5. Forgot Password Api call for user
 export const userForgotPassword = createAsyncThunk<any,string,{rejectValue:string}>(
     'user/forgot',
     async( email, {rejectWithValue})=>{
@@ -105,6 +108,7 @@ export const userForgotPassword = createAsyncThunk<any,string,{rejectValue:strin
     }
 )
 
+// 6. Verify otp api call for user
 export const userVerifyOtp = createAsyncThunk<any,string,{rejectValue:string}>(
     'user/verifyotp',
     async( otp , {rejectWithValue})=>{
@@ -122,6 +126,8 @@ export const userVerifyOtp = createAsyncThunk<any,string,{rejectValue:string}>(
         }
     }
 )
+
+// 7. User Reset Password api call for user
 export const userResetPassword = createAsyncThunk<any,string,{rejectValue:string}>(
     'user/Reset',
     async( password, {rejectWithValue})=>{
