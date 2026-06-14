@@ -378,7 +378,7 @@ const PDF_PAGES = [
   },
 ];
 
-export default function App() {
+export default function UploadSign() {
   const [activeMode, setActiveMode] = useState<SignatureMode | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [placed, setPlaced] = useState<PlacedSignature[]>([]);
