@@ -1,6 +1,17 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Upload, PenLine, Type, Trash2, GripHorizontal, ChevronLeft, ChevronRight, RotateCcw, Check, X } from "lucide-react";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { uploadpdf } from "@/redux/features/files/files.Action";
+
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
 
 type SignatureMode = "draw" | "type" | "upload";
 
@@ -347,43 +358,24 @@ function DraggableSignature({
     </div>
   );
 }
-
-const PDF_PAGES = [
-  {
-    title: "Service Agreement",
-    content: [
-      { type: "header", text: "SERVICE AGREEMENT" },
-      { type: "date", text: "Effective Date: June 14, 2026" },
-      { type: "section", text: "1. PARTIES" },
-      { type: "body", text: "This Service Agreement (\"Agreement\") is entered into as of the date above by and between Meridian Design Studio LLC, a Delaware limited liability company (\"Service Provider\"), and the undersigned client (\"Client\")." },
-      { type: "section", text: "2. SCOPE OF SERVICES" },
-      { type: "body", text: "Service Provider agrees to provide the following services: UI/UX design, front-end engineering, and delivery of production-ready assets as described in the attached Statement of Work (Exhibit A), incorporated herein by reference." },
-      { type: "section", text: "3. PAYMENT TERMS" },
-      { type: "body", text: "Client shall pay Service Provider a fixed project fee of $12,500 USD. Payment is due in two installments: 50% upon execution of this Agreement, and 50% upon final delivery of deliverables." },
-      { type: "section", text: "4. INTELLECTUAL PROPERTY" },
-      { type: "body", text: "Upon receipt of full payment, all deliverables shall become the sole and exclusive property of Client. Service Provider retains the right to display the work in its portfolio." },
-    ],
-  },
-  {
-    title: "Terms & Signatures",
-    content: [
-      { type: "section", text: "5. CONFIDENTIALITY" },
-      { type: "body", text: "Each party agrees to keep confidential all non-public information disclosed by the other party and to use such information solely for purposes of this Agreement." },
-      { type: "section", text: "6. LIMITATION OF LIABILITY" },
-      { type: "body", text: "In no event shall Service Provider be liable for any indirect, incidental, special, or consequential damages. Service Provider's total liability shall not exceed the total fees paid under this Agreement." },
-      { type: "section", text: "7. GOVERNING LAW" },
-      { type: "body", text: "This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of law provisions." },
-      { type: "signature-block", parties: ["Service Provider", "Client"] },
-    ],
-  },
-];
-
-export default function UploadSign() {
+type props ={
+  searchby:string
+}
+export default function UploadSign({searchby}:props) {
   const [activeMode, setActiveMode] = useState<SignatureMode | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
   const [placed, setPlaced] = useState<PlacedSignature[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [numPages, setNumPages] = useState(0);
+  const dispatch = useAppDispatch();
+  const { files } = useAppSelector((state)=>state.file)
+
+  useEffect(()=>{
+     dispatch(uploadpdf(searchby))
+  },[])
+
+  const pdfUrl =files.fileurl;
 
   const handleSaveSignature = (dataUrl: string) => {
     const pdfRect = pdfRef.current?.getBoundingClientRect();
@@ -413,7 +405,7 @@ export default function UploadSign() {
   };
 
   const currentPageSigs = placed.filter((s) => s.page === currentPage);
-  const page = PDF_PAGES[currentPage];
+
 
   return (
     <div
@@ -422,106 +414,39 @@ export default function UploadSign() {
       onClick={() => setSelectedId(null)}
     >
       {/* PDF Viewer */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Toolbar */}
-        <div className="h-12 bg-[#2c2c3a] flex items-center px-4 gap-3 flex-shrink-0">
-          <div className="flex items-center gap-1 text-white/50 text-xs font-medium tracking-wide">
-            <span className="text-white/80">SERVICE AGREEMENT.pdf</span>
-            <span className="mx-2">·</span>
-            <span>{placed.length} signature{placed.length !== 1 ? "s" : ""} placed</span>
-          </div>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-              disabled={currentPage === 0}
-              className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors"
-            >
-              <ChevronLeft size={15} />
-            </button>
-            <span className="text-white/70 text-xs tabular-nums">
-              {currentPage + 1} / {PDF_PAGES.length}
-            </span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(PDF_PAGES.length - 1, p + 1))}
-              disabled={currentPage === PDF_PAGES.length - 1}
-              className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight size={15} />
-            </button>
-          </div>
-        </div>
+     <div className="flex-1 overflow-auto flex items-start justify-center py-8 px-6">
+  <div
+    ref={pdfRef}
+    className="relative bg-white shadow-[0_4px_32px_rgba(0,0,0,0.18)]"
+  >
+    <Document
+      file={pdfUrl}
+      loading={<div className="p-10">Loading PDF...</div>}
+      error={<div className="p-10">Failed to load PDF</div>}
+      onLoadSuccess={({ numPages }) => {
+        setNumPages(numPages);
+      }}
+    >
+      <Page
+        pageNumber={currentPage + 1}
+        width={800}
+        renderTextLayer={false}
+        renderAnnotationLayer={false}
+      />
+    </Document>
 
-        {/* PDF Canvas */}
-        <div className="flex-1 overflow-auto flex items-start justify-center py-8 px-6">
-          <div
-            ref={pdfRef}
-            className="relative bg-white shadow-[0_4px_32px_rgba(0,0,0,0.18)] w-full max-w-2xl"
-            style={{ minHeight: "860px" }}
-          >
-            {/* PDF Content */}
-            <div className="p-14 pt-16">
-              <div className="border-b-2 border-[#1a1a2e] pb-4 mb-8">
-                <div className="text-[10px] tracking-[0.2em] text-muted-foreground font-medium mb-1">MERIDIAN DESIGN STUDIO</div>
-                <div className="text-[10px] text-muted-foreground">Confidential · Page {currentPage + 1} of {PDF_PAGES.length}</div>
-              </div>
-
-              {page.content.map((block, i) => {
-                if (block.type === "header") {
-                  return (
-                    <h1 key={i} className="text-2xl font-bold text-[#1a1a2e] mb-2 tracking-tight" style={{ fontFamily: "Georgia, serif" }}>
-                      {block.text}
-                    </h1>
-                  );
-                }
-                if (block.type === "date") {
-                  return <p key={i} className="text-sm text-muted-foreground mb-8">{block.text}</p>;
-                }
-                if (block.type === "section") {
-                  return (
-                    <h2 key={i} className="text-xs font-bold tracking-[0.12em] text-[#1a1a2e] uppercase mt-7 mb-2">
-                      {block.text}
-                    </h2>
-                  );
-                }
-                if (block.type === "body") {
-                  return (
-                    <p key={i} className="text-sm text-[#3a3a4a] leading-relaxed mb-3">
-                      {block.text}
-                    </p>
-                  );
-                }
-                if (block.type === "signature-block") {
-                  return (
-                    <div key={i} className="mt-12 grid grid-cols-2 gap-12">
-                      {block.parties?.map((party, pi) => (
-                        <div key={pi}>
-                          <div className="h-14 border-b border-[#1a1a2e] mb-2" />
-                          <p className="text-xs font-semibold text-[#1a1a2e] tracking-wide">{party}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Date: _______________</p>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                }
-                return null;
-              })}
-            </div>
-
-            {/* Draggable Signatures */}
-            {currentPageSigs.map((sig) => (
-              <DraggableSignature
-                key={sig.id}
-                sig={sig}
-                onMove={handleMove}
-                onDelete={handleDelete}
-                isSelected={selectedId === sig.id}
-                onSelect={setSelectedId}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+    {currentPageSigs.map((sig) => (
+      <DraggableSignature
+        key={sig.id}
+        sig={sig}
+        onMove={handleMove}
+        onDelete={handleDelete}
+        isSelected={selectedId === sig.id}
+        onSelect={setSelectedId}
+      />
+    ))}
+  </div>
+</div>
 
       {/* Right Sidebar */}
       <div
@@ -577,6 +502,7 @@ export default function UploadSign() {
             </div>
           )}
         </div>
+         
 
         {/* Divider */}
         <div className="mx-4 mt-4 border-t border-border" />
@@ -593,6 +519,7 @@ export default function UploadSign() {
               </span>
             )}
           </div>
+         
 
           {placed.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 gap-2">
