@@ -1,7 +1,9 @@
 'use client'
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileSignature, Menu, X, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { userLogout, userSession } from "@/redux/features/auth/auth.Action";
 
 
 
@@ -21,10 +23,36 @@ const navLinks = [
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [currentPage] = useState('login')
   const router = useRouter()
+  const {  loading, islogin } = useAppSelector((state)=>state.auth)
+  const dispatch = useAppDispatch();
 
+  useEffect(()=>{
+    dispatch(userSession())
+  },[])
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
+      setShowDropdown(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+  
   const isAuth = ["login", "signup", "forgot-password", "verify-otp", "reset-password"].includes(currentPage);
 
   return (
@@ -115,54 +143,59 @@ export function Navbar() {
         )}
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-3">
-          {currentPage === "login" || isAuth ? (
-            <>
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg transition-colors"
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#1a2540", fontSize: "0.875rem", fontWeight: 500 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f2f8")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-                onClick={()=>router.push('/login')}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg flex items-center gap-1.5 transition-opacity"
-                style={{ background: "#2f54eb", color: "#ffffff", border: "none", cursor: "pointer", fontSize: "0.875rem", fontWeight: 500 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                onClick={()=>router.push('/signup')}
-              >
-                Get started free
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg transition-colors"
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#1a2540", fontSize: "0.875rem", fontWeight: 500 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f2f8")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-                
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg transition-opacity"
-                style={{ background: "#1a2540", color: "#ffffff", border: "none", cursor: "pointer", fontSize: "0.875rem", fontWeight: 500 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                Sign up free
-              </button>
-            </>
-          )}
+       <div className="hidden md:flex items-center gap-3">
+  {islogin  ? (
+    <div className="relative">
+      {/* Profile Button */}
+      <button
+        onClick={() => setShowDropdown(!showDropdown)}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+      >
+        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
+          A
         </div>
+        <span>Akash</span>
+      </button>
+
+      {/* Dropdown */}
+      {showDropdown && (
+        <div ref={dropdownRef} className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+          <button
+            className="w-full text-left px-4 py-3 hover:bg-gray-100"
+            onClick={() => router.push("/profile")}
+          >
+            Profile
+          </button>
+
+          <button
+            className="w-full text-left px-4 py-3 hover:bg-gray-100"
+            onClick={()=>dispatch(userLogout())}
+          >
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+  ) : (
+    <>
+      <button
+        type="button"
+        className="px-4 py-2 rounded-lg"
+        onClick={() => router.push("/login")}
+      >
+        Sign in
+      </button>
+
+      <button
+        type="button"
+        className="px-4 py-2 rounded-lg bg-[#1a2540] text-white"
+        onClick={() => router.push("/signup")}
+      >
+        Sign up free
+      </button>
+    </>
+  )}
+</div>
 
         {/* Mobile hamburger */}
         <button

@@ -40,3 +40,23 @@ export const previewPdf = createAsyncThunk<any, string, {rejectValue:String}>(
         }
     }
 )
+
+
+// 3. Add Signature to the pdf
+export const addSignaturetopdf = createAsyncThunk<any,any,{rejectValue:String}>(
+    'pdf/signature',
+    async(payload, {rejectWithValue})=>{
+        try {
+            const { data } = await axios.post(`${baseuri}/uploadsign`,payload,{
+                headers:{'Content-Type':'application/json'},
+                withCredentials:true,
+            })
+            return data;
+        } catch (error) {
+            if(axios.isAxiosError(error)){
+                return rejectWithValue(error.response?.data?.message)
+            }
+            return rejectWithValue("something went wrong")
+        }
+    }
+)

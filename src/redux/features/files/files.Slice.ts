@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"; 
-import { previewPdf, uploadpdf } from "./files.Action";
+import { addSignaturetopdf, previewPdf, uploadpdf } from "./files.Action";
 
 
 interface filedata{
@@ -7,6 +7,8 @@ interface filedata{
     loading:boolean,
     message:String| null,
     error:String | null,
+    isDownload:boolean,
+    downloadurl:string|null,
 }
 
 const initialState:filedata ={
@@ -14,6 +16,9 @@ const initialState:filedata ={
     loading:false,
     message:null,
     error: null,
+    isDownload:false,
+    downloadurl:null,
+
 }
 
 const fileSlice = createSlice({
@@ -48,6 +53,23 @@ const fileSlice = createSlice({
             state.files = action.payload.file;
         }).addCase(previewPdf.rejected,(state,action)=>{
             state.loading = false;
+            state.error = action.payload ?? null;
+        });
+
+        // 3. Add Signature to pdf
+        builder.addCase(addSignaturetopdf.pending,(state)=>{
+            state.loading = true;
+            state.error = null;
+            state.isDownload = false;
+            state.message = null;
+        }).addCase(addSignaturetopdf.fulfilled,(state,action)=>{
+            state.loading = false;
+            state.message = action.payload.message;
+            state.isDownload = true;
+            state.downloadurl = action.payload.pdf.fileurl;
+        }).addCase(addSignaturetopdf.rejected,(state,action)=>{
+            state.loading = false;
+            state.isDownload = false;
             state.error = action.payload ?? null;
         })
     }

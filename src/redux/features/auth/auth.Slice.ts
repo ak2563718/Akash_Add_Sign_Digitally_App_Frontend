@@ -81,11 +81,10 @@ const authSlice = createSlice({
         }).addCase(userSession.fulfilled,(state,action)=>{
             state.loading = false;
             state.islogin = true;
-            state.message = action.payload.message;
             state.user = action.payload.user;
         }).addCase(userSession.rejected,(state,action)=>{
             state.loading = false;
-            state.error = action.payload ?? null;
+            state.islogin = false;
         });
 
         // 5. User forot password

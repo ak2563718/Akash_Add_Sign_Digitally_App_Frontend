@@ -65,7 +65,7 @@ export function PdfUpload() {
       setTimeout(() => {
         setState("success");
       }, 3000);
-      router.push(`/previewpdf/${res.file.id}`)
+      router.push(`/uploadsign/${res.file.id}`)
     } catch (err) {
       console.error(err);
 

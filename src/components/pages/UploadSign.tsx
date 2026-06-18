@@ -1,12 +1,13 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Upload, PenLine, Type, Trash2, GripHorizontal, ChevronLeft, ChevronRight, RotateCcw, Check, X } from "lucide-react";
+import { Upload, PenLine, Type, Trash2, GripHorizontal, ChevronLeft, ChevronRight, RotateCcw, Check, X, Download } from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { uploadpdf } from "@/redux/features/files/files.Action";
-
+import { addSignaturetopdf, previewPdf } from "@/redux/features/files/files.Action";
+import axios from "axios";
+import { Rnd } from "react-rnd";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -40,6 +41,7 @@ function DrawCanvas({ onSave, onCancel }: { onSave: (dataUrl: string) => void; o
   const drawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const [isEmpty, setIsEmpty] = useState(true);
+  
 
   const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -366,17 +368,16 @@ export default function UploadSign({searchby}:props) {
   const [placed, setPlaced] = useState<PlacedSignature[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const dispatch = useAppDispatch();
-  const { files } = useAppSelector((state)=>state.file)
+  const { files, loading, isDownload, downloadurl } = useAppSelector((state)=>state.file)
 
   useEffect(()=>{
-     dispatch(uploadpdf(searchby))
-  },[])
-
+     dispatch(previewPdf(searchby))
+  },[searchby,dispatch])
+  console.log(loading, isDownload, downloadurl)
   const pdfUrl =files.fileurl;
-
   const handleSaveSignature = (dataUrl: string) => {
     const pdfRect = pdfRef.current?.getBoundingClientRect();
     const x = pdfRect ? pdfRect.left + 80 : 200;
@@ -406,45 +407,138 @@ export default function UploadSign({searchby}:props) {
 
   const currentPageSigs = placed.filter((s) => s.page === currentPage);
 
+  const handleSave = async () => {
+  try {
+    const payload = {
+      pdfId: searchby, // assuming searchby is your pdfId
 
+      signatures: placed.map((sig) => ({
+        page: sig.page , // pdf-lib uses page numbers starting from 1
+        x: sig.x,
+        y: sig.y,
+        width: sig.width,
+        height: sig.height,
+        signatureImage: sig.dataUrl,
+      })),
+    };
+
+    // console.log("========== PDF SIGN REQUEST ==========");
+    // console.log(payload);
+    // console.log(
+    //   JSON.stringify(payload, null, 2)
+    // );
+    // console.log("=====================================");
+    await dispatch(addSignaturetopdf(payload))
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const handleDownload = async () => {
+  try {
+    if (!downloadurl) return;
+
+    const response = await fetch(downloadurl);
+
+    if (!response.ok) {
+      throw new Error("Failed to download file");
+    }
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "signed-document.pdf";
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+  }
+};
   return (
     <div
-      className="flex h-screen bg-[#e8e8ec] overflow-hidden"
+      className="flex h-[1250px] bg-[#e8e8ec] overflow-hidden"
       style={{ fontFamily: "Inter, sans-serif" }}
       onClick={() => setSelectedId(null)}
     >
-      {/* PDF Viewer */}
-     <div className="flex-1 overflow-auto flex items-start justify-center py-8 px-6">
-  <div
-    ref={pdfRef}
-    className="relative bg-white shadow-[0_4px_32px_rgba(0,0,0,0.18)]"
-  >
-    <Document
-      file={pdfUrl}
-      loading={<div className="p-10">Loading PDF...</div>}
-      error={<div className="p-10">Failed to load PDF</div>}
-      onLoadSuccess={({ numPages }) => {
-        setNumPages(numPages);
-      }}
-    >
-      <Page
-        pageNumber={currentPage + 1}
-        width={800}
-        renderTextLayer={false}
-        renderAnnotationLayer={false}
-      />
-    </Document>
+      
+   <div className="h-[1250px] flex-1 flex flex-col bg-[#e8e8ec] overflow-hidden">
 
-    {currentPageSigs.map((sig) => (
-      <DraggableSignature
-        key={sig.id}
-        sig={sig}
-        onMove={handleMove}
-        onDelete={handleDelete}
-        isSelected={selectedId === sig.id}
-        onSelect={setSelectedId}
-      />
-    ))}
+  {/* Top Toolbar */}
+  <div className="flex items-center justify-center gap-4 py-4 border-b bg-white shadow-sm">
+    <button
+      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+      disabled={currentPage === 1}
+      className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50"
+    >
+      <ChevronLeft size={20} />
+    </button>
+
+    <div className="px-4 py-2 bg-gray-100 rounded-lg font-medium">
+      {currentPage} / {numPages}
+    </div>
+
+    <button
+      onClick={() =>
+        setCurrentPage((p) => Math.min(numPages, p + 1))
+      }
+      disabled={currentPage === numPages}
+      className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50"
+    >
+      <ChevronRight size={20} />
+    </button>
+    {isDownload && <div className="ml-200">
+      <button onClick={handleDownload}>
+        <Download className="ml-6"/>
+        Download
+      </button>
+    </div>}
+  </div>
+
+  {/* PDF Area */}
+  <div className="flex-1 overflow-auto flex justify-center p-8">
+
+    <div
+      ref={pdfRef}
+      className="relative bg-white rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
+    >
+      <Document
+        file={pdfUrl}
+        onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+        loading={
+          <div className="p-10 text-center">
+            Loading PDF...
+          </div>
+        }
+      >
+        <Page
+          pageNumber={currentPage}
+          width={800}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+        />
+      </Document>
+
+      {currentPageSigs
+        .filter((sig) => sig.page === currentPage)
+        .map((sig) => (
+         
+          <DraggableSignature
+            key={sig.id}
+            sig={sig}
+            onMove={handleMove}
+            onDelete={handleDelete}
+            isSelected={selectedId === sig.id}
+            onSelect={setSelectedId}
+          />
+        ))}
+    </div>
+
   </div>
 </div>
 
@@ -567,7 +661,7 @@ export default function UploadSign({searchby}:props) {
         {/* Footer CTA */}
         {placed.length > 0 && (
           <div className="px-4 py-4 border-t border-border flex-shrink-0">
-            <button className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+            <button onClick={handleSave} className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
               Save & Finalize Document
             </button>
             <p className="text-[10px] text-muted-foreground text-center mt-2">
