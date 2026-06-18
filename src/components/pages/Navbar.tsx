@@ -180,7 +180,7 @@ useEffect(() => {
     <>
       <button
         type="button"
-        className="px-4 py-2 rounded-lg"
+        className="px-4 py-2 rounded-lg cursor-pointer"
         onClick={() => router.push("/login")}
       >
         Sign in
@@ -188,7 +188,7 @@ useEffect(() => {
 
       <button
         type="button"
-        className="px-4 py-2 rounded-lg bg-[#1a2540] text-white"
+        className="px-4 py-2 rounded-lg bg-[#1a2540] text-white cursor-pointer"
         onClick={() => router.push("/signup")}
       >
         Sign up free
