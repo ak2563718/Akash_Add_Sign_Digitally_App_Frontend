@@ -1,36 +1,152 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDFSign Frontend
 
-## Getting Started
+Frontend application for PDFSign, an online document signing platform that enables users to upload PDFs, place signatures, and securely manage signed documents.
 
-First, run the development server:
+## Features
+
+* User Authentication
+* Secure Login & Registration
+* OTP-Based Password Recovery
+* PDF Upload Interface
+* PDF Preview and Viewing
+* Drag & Drop Signature Placement
+* Download Signed Documents
+* Responsive User Interface
+* State Management with Redux Toolkit
+
+## Tech Stack
+
+* Next.js
+* React.js
+* TypeScript
+* Redux Toolkit
+* Axios
+* React PDF
+* Tailwind CSS
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+```
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features Overview
 
-## Learn More
+### Authentication
 
-To learn more about Next.js, take a look at the following resources:
+* User Registration
+* User Login
+* User Logout
+* Forgot Password
+* OTP Verification
+* Password Reset
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### PDF Handling
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* Upload PDF Documents
+* Preview PDFs Before Signing
+* View Multi-Page PDFs
+* Download Signed PDFs
 
-## Deploy on Vercel
+### Signature Management
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* Draw Signature
+* Upload Signature
+* Place Signatures Anywhere on PDF Pages
+* Resize and Position Signatures
+* Save Signature Coordinates
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### State Management
+
+Redux Toolkit is used for:
+
+* Authentication State
+* User Information
+* PDF Data
+* Application State Management
+
+## Project Structure
+
+```text
+frontend/
+├── app/
+├── components/
+├── redux/
+├── services/
+├── hooks/
+├── public/
+├── types/
+├── utils/
+├── next.config.ts
+└── package.json
+```
+
+## Environment Variables
+
+| Variable                | Description     |
+| ----------------------- | --------------- |
+| NEXT_PUBLIC_BACKEND_URL | Backend API URL |
+
+## Deployment
+
+The frontend can be deployed on:
+
+* Vercel
+* Netlify
+* AWS Amplify
+
+Before deployment, update:
+
+```env
+NEXT_PUBLIC_BACKEND_URL=https://your-backend-url.com
+```
+
+## Security Features
+
+* Protected Routes
+* Secure Cookie-Based Authentication
+* API Request Validation
+* CORS-Protected Backend Communication
+
+## User Workflow
+
+1. Create an account or log in.
+2. Upload a PDF document.
+3. Add or draw a signature.
+4. Place the signature on the desired page.
+5. Save and finalize the document.
+6. Download the signed PDF or share it securely.
+
+## Author
+
+Akash Kumar
+
+Built to simplify online document signing with a modern and user-friendly experience.
+
