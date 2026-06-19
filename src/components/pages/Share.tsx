@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Copy, Check, Share2, X, Link } from "lucide-react";
-
-const SHARE_URL = "https://example.com/shared-content?ref=app";
+import { useAppSelector } from "@/redux/hooks";
 
 function GmailIcon() {
   return (
@@ -83,9 +82,15 @@ const shareOptions = [
       `https://t.me/share/url?url=${encodeURIComponent(url)}`,
   },
 ];
-
-function ShareModal({ onClose }: { onClose: () => void }) {
+type props ={
+  isopen:boolean,
+  onClose:()=>void
+}
+export default function Share({isopen ,onClose }: props) {
+  const { sharableLink } = useAppSelector((state)=>state.file)
+  const SHARE_URL = sharableLink ?? "";
   const [copied, setCopied] = useState(false);
+  
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(SHARE_URL);
@@ -93,6 +98,9 @@ function ShareModal({ onClose }: { onClose: () => void }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if(!isopen){
+    return null;
+  }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
@@ -184,21 +192,3 @@ function ShareModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function App() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="size-full flex items-center justify-center bg-background font-['Inter',sans-serif]">
-      {/* Trigger button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-md hover:opacity-90 active:scale-95 transition-all duration-150"
-      >
-        <Share2 className="w-4 h-4" />
-        Share
-      </button>
-
-      {open && <ShareModal onClose={() => setOpen(false)} />}
-    </div>
-  );
-}

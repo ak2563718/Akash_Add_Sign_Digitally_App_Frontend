@@ -1,7 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const baseuri = 'http://localhost:3300/api/doc';
+
+
+const baseuri = 'https://akash-add-sign-digitally-app-backend.onrender.com/api/doc';
 
 // 1. Upload pdf file api call
 export const uploadpdf = createAsyncThunk<any, any, { rejectValue: String}>(
@@ -60,3 +62,43 @@ export const addSignaturetopdf = createAsyncThunk<any,any,{rejectValue:String}>(
         }
     }
 )
+
+
+// 4. Get Shareable url
+export const getShareLink = createAsyncThunk<
+  any,
+  string,
+  { rejectValue: string }
+>(
+  "post/createlink",
+  async (id, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(
+        `${baseuri}/createlink/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      return data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.log(error)
+        if (error.response?.status === 401) {
+            console.log('status code',error.response?.status)
+          window.location.href = "/login";
+          return rejectWithValue("Unauthorized");
+        }
+
+        return rejectWithValue(
+          error.response?.data?.message || "Something went wrong"
+        );
+      }
+
+      return rejectWithValue("Something went wrong");
+    }
+  }
+);

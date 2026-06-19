@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"; 
-import { addSignaturetopdf, previewPdf, uploadpdf } from "./files.Action";
+import { addSignaturetopdf, getShareLink, previewPdf, uploadpdf } from "./files.Action";
 
 
 interface filedata{
@@ -9,6 +9,7 @@ interface filedata{
     error:String | null,
     isDownload:boolean,
     downloadurl:string|null,
+    sharableLink:string|null,
 }
 
 const initialState:filedata ={
@@ -18,7 +19,7 @@ const initialState:filedata ={
     error: null,
     isDownload:false,
     downloadurl:null,
-
+    sharableLink:null,
 }
 
 const fileSlice = createSlice({
@@ -70,6 +71,21 @@ const fileSlice = createSlice({
         }).addCase(addSignaturetopdf.rejected,(state,action)=>{
             state.loading = false;
             state.isDownload = false;
+            state.error = action.payload ?? null;
+        });
+
+        // 4. Get Shareable link
+        builder.addCase(getShareLink.pending,(state)=>{
+            state.loading = true;
+            state.error = null;
+            state.message = null;
+            state.sharableLink = null;
+        }).addCase(getShareLink.fulfilled,(state,action)=>{
+            state.loading = false;
+            state.message = action.payload.message;
+            state.sharableLink = action.payload.link;
+        }).addCase(getShareLink.rejected,(state,action)=>{
+            state.loading = false;
             state.error = action.payload ?? null;
         })
     }

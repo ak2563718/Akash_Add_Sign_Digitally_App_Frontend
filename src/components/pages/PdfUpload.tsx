@@ -315,6 +315,7 @@ export function PdfUpload() {
           Encrypted in transit — only you can open this file until you choose to share it.
         </p>
       )}
+      
     </div>
   );
 }

@@ -1,12 +1,15 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Upload, PenLine, Type, Trash2, GripHorizontal, ChevronLeft, ChevronRight, RotateCcw, Check, X, Download } from "lucide-react";
+import { Upload, PenLine, Type, Trash2, GripHorizontal, ChevronLeft, ChevronRight, RotateCcw, Check, X, Download, Plus } from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { addSignaturetopdf, previewPdf } from "@/redux/features/files/files.Action";
-import axios from "axios";
+import { addSignaturetopdf, getShareLink, previewPdf } from "@/redux/features/files/files.Action";
+import { useRouter } from "next/navigation";
+import SignLoading from "./SignLoading";
+import ScrollToTop from "./ScrollToTop";
+import Share from "./Share";
 import { Rnd } from "react-rnd";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -360,6 +363,8 @@ function DraggableSignature({
     </div>
   );
 }
+
+
 type props ={
   searchby:string
 }
@@ -370,13 +375,16 @@ export default function UploadSign({searchby}:props) {
   const pdfRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [numPages, setNumPages] = useState(0);
+  const [ add, setAdd] = useState(false)
   const dispatch = useAppDispatch();
-  const { files, loading, isDownload, downloadurl } = useAppSelector((state)=>state.file)
+  const router = useRouter()
+  const [ loading, setLoading ] = useState(false)
+  const { files, isDownload, downloadurl } = useAppSelector((state)=>state.file)
 
   useEffect(()=>{
      dispatch(previewPdf(searchby))
   },[searchby,dispatch])
-  console.log(loading, isDownload, downloadurl)
+  
   const pdfUrl =files.fileurl;
   const handleSaveSignature = (dataUrl: string) => {
     const pdfRect = pdfRef.current?.getBoundingClientRect();
@@ -409,6 +417,7 @@ export default function UploadSign({searchby}:props) {
 
   const handleSave = async () => {
   try {
+    setLoading(true)
     const payload = {
       pdfId: searchby, // assuming searchby is your pdfId
 
@@ -421,14 +430,10 @@ export default function UploadSign({searchby}:props) {
         signatureImage: sig.dataUrl,
       })),
     };
-
-    // console.log("========== PDF SIGN REQUEST ==========");
-    // console.log(payload);
-    // console.log(
-    //   JSON.stringify(payload, null, 2)
-    // );
-    // console.log("=====================================");
     await dispatch(addSignaturetopdf(payload))
+    setTimeout(()=>{
+      setLoading(false)
+    },5000)
   } catch (error) {
     console.error(error);
   }
@@ -460,6 +465,22 @@ const handleDownload = async () => {
     console.error(error);
   }
 };
+
+const handleAddbutton = async()=>{
+  await dispatch(getShareLink(searchby))
+  setAdd(true)
+}
+
+if(loading){
+  return (
+    <>
+    <div className="w-full h-screen">
+      <ScrollToTop/>
+      <SignLoading/>
+    </div>
+    </>
+  )
+}
   return (
     <div
       className="flex h-[1250px] bg-[#e8e8ec] overflow-hidden"
@@ -474,7 +495,7 @@ const handleDownload = async () => {
     <button
       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
       disabled={currentPage === 1}
-      className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50"
+      className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
     >
       <ChevronLeft size={20} />
     </button>
@@ -488,15 +509,23 @@ const handleDownload = async () => {
         setCurrentPage((p) => Math.min(numPages, p + 1))
       }
       disabled={currentPage === numPages}
-      className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50"
+      className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
     >
       <ChevronRight size={20} />
     </button>
-    {isDownload && <div className="ml-200">
-      <button onClick={handleDownload}>
-        <Download className="ml-6"/>
+    {isDownload && <div className="ml-100 cursor-pointer flex">
+      <div className="mr-10">
+        <button className="cursor-pointer" onClick={handleAddbutton}>
+          <Plus className="ml-14 cursor-pointer"/>
+          Add People to Sign-Pdf
+        </button>
+      </div>
+     <div>
+       <button onClick={handleDownload} className="cursor-pointer">
+        <Download className="ml-6 cursor-pointer"/>
         Download
       </button>
+     </div>
     </div>}
   </div>
 
@@ -566,7 +595,7 @@ const handleDownload = async () => {
               <button
                 key={id}
                 onClick={() => setActiveMode(activeMode === id ? null : id)}
-                className={`flex flex-col items-center gap-1 py-2.5 rounded-md text-xs font-medium transition-all ${
+                className={`flex flex-col items-center gap-1 py-2.5 cursor-pointer rounded-md text-xs font-medium transition-all ${
                   activeMode === id
                     ? "bg-white text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -661,8 +690,11 @@ const handleDownload = async () => {
         {/* Footer CTA */}
         {placed.length > 0 && (
           <div className="px-4 py-4 border-t border-border flex-shrink-0">
-            <button onClick={handleSave} className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+            <button onClick={handleSave} className="border border-black cursor-pointer w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
               Save & Finalize Document
+            </button>
+            <button onClick={()=>router.push('/')} className="border border-black cursor-pointer w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+              Cancel
             </button>
             <p className="text-[10px] text-muted-foreground text-center mt-2">
               This will lock all signatures and generate the final PDF
@@ -670,6 +702,7 @@ const handleDownload = async () => {
           </div>
         )}
       </div>
+    <Share isopen={add} onClose={()=>setAdd(false)}/>
     </div>
   );
 }
