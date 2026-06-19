@@ -27,7 +27,7 @@ export function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [currentPage] = useState('login')
   const router = useRouter()
-  const {  loading, islogin } = useAppSelector((state)=>state.auth)
+  const {  loading, islogin, user } = useAppSelector((state)=>state.auth)
   const dispatch = useAppDispatch();
 
   useEffect(()=>{
@@ -152,9 +152,9 @@ useEffect(() => {
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
       >
         <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
-          A
+          {user?.name.charAt(0).toUpperCase()}
         </div>
-        <span>Akash</span>
+        <span>{user?.name}</span>
       </button>
 
       {/* Dropdown */}
