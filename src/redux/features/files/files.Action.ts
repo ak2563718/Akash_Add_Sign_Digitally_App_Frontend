@@ -87,12 +87,6 @@ export const getShareLink = createAsyncThunk<
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log(error)
-        if (error.response?.status === 401) {
-            console.log('status code',error.response?.status)
-          window.location.href = "/login";
-          return rejectWithValue("Unauthorized");
-        }
-
         return rejectWithValue(
           error.response?.data?.message || "Something went wrong"
         );

@@ -1,5 +1,5 @@
 'use client'
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { FileSignature, Eye, EyeOff, ArrowLeft, KeyRound, Check, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -16,7 +16,6 @@ export function ResetPassword() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { loading , error, message, isVerifiedOtp } = useAppSelector((state)=>state.auth)
-  console.log("error from resetpassword",error)
 
   const rules = [
     { label: "At least 8 characters", met: password.length >= 8 },
@@ -49,7 +48,7 @@ export function ResetPassword() {
        toast.success(res.message);
        setPassword('');
        setConfirmPassword('');
-       router.push('/login')
+       router.replace('/login')
     } catch (error) {
       console.error(error);
       setPassword('');
@@ -83,10 +82,15 @@ export function ResetPassword() {
     );
   }
 
-  if(!isVerifiedOtp){
-   router.push('/forgot-password')
-   return null;
+  useEffect(() => {
+  if (!isVerifiedOtp) {
+    router.replace("/forgot-password");
   }
+}, [isVerifiedOtp, router]);
+
+if (!isVerifiedOtp) {
+  return null;
+}
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">

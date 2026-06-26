@@ -53,7 +53,7 @@ export function Signup() {
         password:'',
         confirmPassword:'',
       })
-      router.push('/login')
+      router.replace('/login')
     } catch (error) {
       console.error(error)
     }

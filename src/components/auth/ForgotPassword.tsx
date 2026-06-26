@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { userForgotPassword } from "@/redux/features/auth/auth.Action";
 import toast from "react-hot-toast";
+import { RootState } from "@reduxjs/toolkit/query";
 
 export function ForgotPassword() {
   const [email, setEmail] = useState("");
   const router = useRouter();
   const { loading, error } = useAppSelector((state)=>state.auth);
   const dispatch = useAppDispatch();
-  console.log("error from forgot password",error)
 
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +19,7 @@ export function ForgotPassword() {
       const res =await dispatch(userForgotPassword(email)).unwrap();
       toast.success(res.message)
       setEmail('')
-      router.push('/verify-otp')
+      router.replace('/verify-otp')
     } catch (error) {
       console.error(error)
     }

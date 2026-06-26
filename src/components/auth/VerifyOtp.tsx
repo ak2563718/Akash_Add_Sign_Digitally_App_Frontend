@@ -59,7 +59,7 @@ export function VerifyOtp() {
       const res = await dispatch(userVerifyOtp(code)).unwrap();
       toast.success(res.message)
       setOtp(["", "", "", "", "", ""]);
-      router.push('/reset-password');
+      router.replace('/reset-password');
     } catch (error) {
       console.error(error)
       setOtp(["", "", "", "", "", ""]);
@@ -75,10 +75,15 @@ export function VerifyOtp() {
     setTimeout(() => { setResending(false); setResendCooldown(59); }, 1000);
   };
 
-  if(!isSentOtp){
-    router.push('/forgot-password')
-    return null;
+  useEffect(() => {
+  if (!isSentOtp) {
+    router.replace("/forgot-password");
   }
+}, [isSentOtp, router]);
+
+if (!isSentOtp) {
+  return null; // or a loading spinner
+}
 
 //   const maskedEmail = email?.replace(/(.{2})(.*)(@.*)/, (_, a, b, c) => a + "*".repeat(b.length) + c);
 

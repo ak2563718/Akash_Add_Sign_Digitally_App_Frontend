@@ -7,7 +7,7 @@ export default function TestPage(){
     const [ add, setAdd] = useState(false)
     return(
         <>
-        <Share onClose={()=>setAdd(false)}/>
+        <Share isopen={add} onClose={()=>setAdd(false)}/>
         </>
     )
 }

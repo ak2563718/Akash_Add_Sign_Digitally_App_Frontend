@@ -21,7 +21,7 @@ export function Login() {
       toast.success(res.message)
       setEmail("");
       setPassword("");
-      router.push("/")
+      router.replace("/")
     } catch (error) {
       console.error(error)
     }
